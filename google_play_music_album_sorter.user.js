@@ -3,7 +3,7 @@
 // @description    Greasemonkey/Tampermonkey UserScript for extending Google Play Music with album sorting functionality
 // @namespace      http://github.com/VipSaran/Google-Play-Music-Album-Sorter
 // @updateURL      https://github.com/VipSaran/Google-Play-Music-Album-Sorter/raw/master/google_play_music_album_sorter.user.js
-// @version        0.1
+// @version        0.2
 // @author         VipSaran
 // @require        http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
 // @include        http://play.google.com/music/listen*
