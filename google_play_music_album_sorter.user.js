@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Google Play Music Album Sorter
-// @description    Greasemonkey/Tampermonkey user script for adding sorting functionality to Google Play Music
+// @description    Greasemonkey/Tampermonkey UserScript for extending Google Play Music with album sorting functionality
 // @namespace      http://github.com/VipSaran/Google-Play-Music-Album-Sorter
 // @updateURL      https://github.com/VipSaran/Google-Play-Music-Album-Sorter/raw/master/google_play_music_album_sorter.user.js
 // @version        0.1
@@ -21,6 +21,9 @@ var DEBUG = true;
 
 function GooglePlayMusicAlbumSorter() {
   if (DEBUG) console.log('GooglePlayMusicAlbumSorter()');
+
+  this.order = this.loadOrder() || 'asc';
+  if (DEBUG) console.log('this.order=', this.order);
 }
 
 GooglePlayMusicAlbumSorter.prototype.loadOrder = function() {
@@ -34,41 +37,64 @@ GooglePlayMusicAlbumSorter.prototype.saveOrder = function(order) {
   window.localStorage.setItem('order', order);
 };
 
+var sortingInProgress = false;
+var domModifiedTimeout;
+var domModifiedCallback = function() {
+  if (DEBUG) console.log('domModifiedCallback()');
+
+  if (domModifiedTimeout) {
+    clearTimeout(domModifiedTimeout);
+  }
+
+  var albums = $("div").find("[data-type='album']");
+  var albumsParent = albums.first().parent();
+  if (albumsParent && albumsParent.hasClass('artist-view')) {
+    if (DEBUG) console.log('albumsParent=', albumsParent);
+    var firstSibling = albums.first().siblings().first();
+    if (firstSibling && firstSibling.hasClass('section-header')) {
+      sortingInProgress = true;
+
+      if (DEBUG) console.log('albums=', albums);
+      albums.sort(function(a, b) {
+        var aYear = $(a).find("a.sub-title").html();
+        var bYear = $(b).find("a.sub-title").html();
+        return sorter.order === 'asc' ? aYear - bYear : bYear - aYear;
+      });
+
+      albumsParent.empty();
+      albumsParent.append('<div class="section-header">Albums</div>');
+      $.each(albums, function(i, album) {
+        // if (DEBUG) console.log('each', i, album);
+        albumsParent.append(album);
+      });
+
+      sortingInProgress = false;
+    }
+  }
+};
+
 GooglePlayMusicAlbumSorter.prototype.init = function() {
   if (DEBUG) console.log('GooglePlayMusicAlbumSorter.init()');
 
-  $('.artist-view').bind("DOMSubtreeModified", function() {
-    alert('changed');
+  // $('#content').bind("DOMSubtreeModified", function() {
+  $('#content').bind("DOMNodeInserted DOMNodeRemoved", function() {
+    if (DEBUG) console.log('DOMNodeInserted DOMNodeRemoved');
+
+    if (domModifiedTimeout) {
+      clearTimeout(domModifiedTimeout);
+    }
+    if (sortingInProgress) {
+      return;
+    }
+    domModifiedTimeout = setTimeout(function() {
+      domModifiedCallback();
+    }, 1000);
+
   });
-
-  $('.artist-view').bind("DOMNodeInserted DOMNodeRemoved", function() {
-    alert('changed 2');
-  });
-
-  this.order = this.loadOrder() || 'asc';
-  console.log('this.order=', this.order);
-  this.saveOrder('desc');
-};
-
-GooglePlayMusicAlbumSorter.prototype.sort = function() {
-  if (DEBUG) console.log('GooglePlayMusicAlbumSorter.sort()');
-
-  var header = '<div class="section-header">Albums</div>';
-
-  var albums = $("div").find("[data-type='album']");
-  console.log('children #: ', albums.length);
-
-  var albumsParent = albums.first().parent();
-  console.log('albumsParent=', albumsParent);
 };
 
 var sorter = new GooglePlayMusicAlbumSorter();
 
 $(document).ready(function() {
   sorter.init();
-  // console.log(new Date().getTime());
-  setTimeout(function() {
-    // console.log(new Date().getTime());
-    sorter.sort();
-  }, 7000);
 });

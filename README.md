@@ -1,4 +1,10 @@
 Google-Play-Music-Album-Sorter
 ==============================
 
-Greasemonkey/Tampermonkey user script for adding sorting functionality to Google Play Music
+Greasemonkey/Tampermonkey UserScript for extending Google Play Music with album sorting functionality
+
+
+Limitations
+-----------
+
+ - works only on standalone "Albums" view
