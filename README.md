@@ -31,3 +31,10 @@ To-Do
 
  - after sorting by year, also sort by name (in same order)
  - switch between year and name sorting
+
+Changelog
+---------
+
+1.0.1
+
+ - adapted to content div id change
