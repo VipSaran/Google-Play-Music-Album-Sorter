@@ -20,7 +20,7 @@
 // @run-at        document-end
 // ==/UserScript==
 
-var DEBUG = false;
+var DEBUG = true;
 
 function GooglePlayMusicAlbumSorter() {
   if (DEBUG) console.log('GooglePlayMusicAlbumSorter()');
@@ -48,8 +48,11 @@ var domModifiedCallback = function() {
   }
 
   var albums = $("div").find("[data-type='album']");
-  var albumsParent = albums.first().parent();
-  if (albumsParent && albumsParent.hasClass('artist-view')) {
+  var laneContent = albums.first().parent();
+  var cardsPerPage = laneContent.parent().data('cards-per-page');
+  var onAlbumsPage = !laneContent.parent().hasClass('has-more');
+  // var albumsParent = albums.first().parent();
+  if (onAlbumsPage) {
     if (DEBUG) console.log('albumsParent=', albumsParent);
     var firstSibling = albums.first().siblings().first();
     if (firstSibling && firstSibling.hasClass('section-header')) {
@@ -109,7 +112,7 @@ GooglePlayMusicAlbumSorter.prototype.init = function() {
     '</style>'
   );
 
-  $('#music-content').bind("DOMNodeInserted", function() {
+  $('#music-content > .lane-content').bind("DOMNodeInserted", function() {
     if (DEBUG) console.log('DOMNodeInserted');
 
     if (domModifiedTimeout) {
