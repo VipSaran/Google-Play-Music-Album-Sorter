@@ -49,6 +49,9 @@ var domModifiedCallback = function() {
 
   var albums = $("div").find("[data-type='album']");
   var laneContent = albums.first().parent();
+  console.log('laneContent=', laneContent);
+  console.log('laneContent=', laneContent.attr('class'));
+
   var cardsPerPage = laneContent.parent().data('cards-per-page');
   var onAlbumsPage = !laneContent.parent().hasClass('has-more');
   // var albumsParent = albums.first().parent();
@@ -104,15 +107,17 @@ var domModifiedCallback = function() {
 GooglePlayMusicAlbumSorter.prototype.init = function() {
   if (DEBUG) console.log('GooglePlayMusicAlbumSorter.init()');
 
-  $('head').append(
-    '<style>\n' +
-    '#gpmas_sorter {float: right; width: 40px; height: 40px; cursor: pointer; background-repeat: no-repeat; background-position: center center;}\n' +
-    '#gpmas_sorter.asc {background-image: url("' + GM_getResourceURL("sort_asc") + '");}\n' +
-    '#gpmas_sorter.desc {background-image: url("' + GM_getResourceURL("sort_desc") + '");}\n' +
-    '</style>'
-  );
+  // TODO icon
+  // $('head').append(
+  //   '<style>\n' +
+  //   '#gpmas_sorter {float: right; width: 40px; height: 40px; cursor: pointer; background-repeat: no-repeat; background-position: center center;}\n' +
+  //   '#gpmas_sorter.asc {background-image: url("' + GM_getResourceURL("sort_asc") + '");}\n' +
+  //   '#gpmas_sorter.desc {background-image: url("' + GM_getResourceURL("sort_desc") + '");}\n' +
+  //   '</style>'
+  // );
 
-  $('#music-content > .lane-content').bind("DOMNodeInserted", function() {
+  // console.log($('#music-content .lane-content'));
+  $('#music-content').bind("DOMNodeInserted", function() {
     if (DEBUG) console.log('DOMNodeInserted');
 
     if (domModifiedTimeout) {
