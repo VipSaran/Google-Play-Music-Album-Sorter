@@ -47,11 +47,12 @@ var domModifiedCallback = function() {
     clearTimeout(domModifiedTimeout);
   }
 
-  var albums = $("div").find("[data-type='album']");
-  var laneContent = albums.first().parent();
+  var laneContent = $('#music-content .lane-content');
   if (DEBUG) console.log('laneContent=', laneContent);
 
   var cardsPerPage = laneContent.parent().data('cards-per-page');
+  if (DEBUG) console.log('cardsPerPage=', cardsPerPage);
+
   var onAlbumsPage = !laneContent.parent().hasClass('has-more');
   if (onAlbumsPage) {
     if (DEBUG) console.log('onAlbumsPage');
@@ -82,7 +83,9 @@ var domModifiedCallback = function() {
         });
       }
 
+      var albums = $("div").find("[data-type='album']").filter(':not(.player-album)');
       if (DEBUG) console.log('albums=', albums);
+
       albums.sort(function(a, b) {
         var aYear = $(a).find("a.sub-title").html();
         var bYear = $(b).find("a.sub-title").html();
@@ -91,10 +94,21 @@ var domModifiedCallback = function() {
 
       laneContent.children("[data-type='album']").fadeOut("fast").promise().done(function() {
         laneContent.empty();
-        $.each(albums, function(i, album) {
-          // if (DEBUG) console.log('each', i, album);
-          laneContent.append(album);
-        });
+
+        var nClusters = Math.ceil(albums.length / cardsPerPage);
+        console.log('nClusters=', nClusters);
+
+        for (var i = 0; i < nClusters; i++) {
+          laneContent.append('<div class="cluster-page" data-page-num="' + i + '"></div>');
+          var clusterPage = laneContent.find('.cluster-page').last();
+
+          for (var j = 0; j < cardsPerPage && albums.length > 0; j++) {
+            var album = albums.get(0);
+            albums.splice(0, 1);
+            clusterPage.append(album);
+          }
+        }
+
         laneContent.children("[data-type='album']").fadeIn("fast");
 
         sortingInProgress = false;
@@ -108,15 +122,19 @@ GooglePlayMusicAlbumSorter.prototype.init = function() {
 
   $('head').append(
     '<style>\n' +
-    '#gpmas_sorter {float: right; width: 40px; height: 40px; cursor: pointer; background-repeat: no-repeat; background-position: center center;}\n' +
+    '#gpmas_sorter {float: right; width: 40px; height: 40px; position: absolute; top: -5px; right: 0; cursor: pointer; background-repeat: no-repeat; background-position: center center;}\n' +
     '#gpmas_sorter.asc {background-image: url("' + GM_getResourceURL("sort_asc") + '");}\n' +
     '#gpmas_sorter.desc {background-image: url("' + GM_getResourceURL("sort_desc") + '");}\n' +
     '</style>'
   );
 
   // if (DEBUG) console.log($('#music-content .lane-content'));
-  $('#music-content').bind("DOMNodeInserted", function() {
-    if (DEBUG) console.log('DOMNodeInserted');
+  $('#music-content').bind("DOMNodeInserted", function(event) {
+    if (DEBUG) console.log('DOMNodeInserted', event.target.nodeName);
+
+    if (event.target.nodeName === 'SJ-ICON-BUTTON') {
+      return;
+    }
 
     if (domModifiedTimeout) {
       clearTimeout(domModifiedTimeout);
