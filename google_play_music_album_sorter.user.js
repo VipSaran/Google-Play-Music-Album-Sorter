@@ -49,40 +49,23 @@ var domModifiedCallback = function() {
 
   var albums = $("div").find("[data-type='album']");
   var laneContent = albums.first().parent();
-  console.log('laneContent=', laneContent);
-  console.log('laneContent=', laneContent.attr('class'));
+  if (DEBUG) console.log('laneContent=', laneContent);
 
   var cardsPerPage = laneContent.parent().data('cards-per-page');
   var onAlbumsPage = !laneContent.parent().hasClass('has-more');
-  // var albumsParent = albums.first().parent();
   if (onAlbumsPage) {
-    if (DEBUG) console.log('albumsParent=', albumsParent);
-    var firstSibling = albums.first().siblings().first();
-    if (firstSibling && firstSibling.hasClass('section-header')) {
+    if (DEBUG) console.log('onAlbumsPage');
+
+    var sectionHeader = $('.section-header');
+    if (sectionHeader) {
       sortingInProgress = true;
 
       var sortOrder = sorter.loadOrder() || 'asc';
       if (DEBUG) console.log('sortOrder=', sortOrder);
 
-      if (sectionHeaderText == '') {
-        sectionHeaderText = firstSibling.html();
-      }
-
-      if (DEBUG) console.log('albums=', albums);
-      albums.sort(function(a, b) {
-        var aYear = $(a).find("a.sub-title").html();
-        var bYear = $(b).find("a.sub-title").html();
-        return sortOrder === 'asc' ? aYear - bYear : bYear - aYear;
-      });
-
-      albumsParent.children("[data-type='album']").fadeOut("fast").promise().done(function() {
-        albumsParent.empty();
-        albumsParent.append('<div class="section-header">' + sectionHeaderText + '<span id="gpmas_sorter" class="' + sortOrder + '" title="Sort"></span></div>');
-        $.each(albums, function(i, album) {
-          // if (DEBUG) console.log('each', i, album);
-          albumsParent.append(album);
-        });
-        albumsParent.children("[data-type='album']").fadeIn("fast");
+      // if (DEBUG) console.log('$(#gpmas_sorter)=', $('#gpmas_sorter').html());
+      if ($('#gpmas_sorter').html() === undefined) {
+        sectionHeader.append('<span id="gpmas_sorter" class="' + sortOrder + '" title="Sort"></span>');
 
         $('#gpmas_sorter').click(function(event) {
           var currClass = $(this).attr('class');
@@ -97,6 +80,22 @@ var domModifiedCallback = function() {
 
           domModifiedCallback();
         });
+      }
+
+      if (DEBUG) console.log('albums=', albums);
+      albums.sort(function(a, b) {
+        var aYear = $(a).find("a.sub-title").html();
+        var bYear = $(b).find("a.sub-title").html();
+        return sortOrder === 'asc' ? aYear - bYear : bYear - aYear;
+      });
+
+      laneContent.children("[data-type='album']").fadeOut("fast").promise().done(function() {
+        laneContent.empty();
+        $.each(albums, function(i, album) {
+          // if (DEBUG) console.log('each', i, album);
+          laneContent.append(album);
+        });
+        laneContent.children("[data-type='album']").fadeIn("fast");
 
         sortingInProgress = false;
       });
@@ -107,16 +106,15 @@ var domModifiedCallback = function() {
 GooglePlayMusicAlbumSorter.prototype.init = function() {
   if (DEBUG) console.log('GooglePlayMusicAlbumSorter.init()');
 
-  // TODO icon
-  // $('head').append(
-  //   '<style>\n' +
-  //   '#gpmas_sorter {float: right; width: 40px; height: 40px; cursor: pointer; background-repeat: no-repeat; background-position: center center;}\n' +
-  //   '#gpmas_sorter.asc {background-image: url("' + GM_getResourceURL("sort_asc") + '");}\n' +
-  //   '#gpmas_sorter.desc {background-image: url("' + GM_getResourceURL("sort_desc") + '");}\n' +
-  //   '</style>'
-  // );
+  $('head').append(
+    '<style>\n' +
+    '#gpmas_sorter {float: right; width: 40px; height: 40px; cursor: pointer; background-repeat: no-repeat; background-position: center center;}\n' +
+    '#gpmas_sorter.asc {background-image: url("' + GM_getResourceURL("sort_asc") + '");}\n' +
+    '#gpmas_sorter.desc {background-image: url("' + GM_getResourceURL("sort_desc") + '");}\n' +
+    '</style>'
+  );
 
-  // console.log($('#music-content .lane-content'));
+  // if (DEBUG) console.log($('#music-content .lane-content'));
   $('#music-content').bind("DOMNodeInserted", function() {
     if (DEBUG) console.log('DOMNodeInserted');
 
