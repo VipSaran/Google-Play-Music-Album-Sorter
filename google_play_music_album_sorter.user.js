@@ -96,17 +96,28 @@ var domModifiedCallback = function() {
         laneContent.empty();
 
         var nClusters = Math.ceil(albums.length / cardsPerPage);
-        console.log('nClusters=', nClusters);
+        if (DEBUG) console.log('nClusters=', nClusters);
+        
+        var maxAlbums = cardsPerPage * nClusters;
+        if (DEBUG) console.log('maxAlbums=', maxAlbums);
 
+        var nRemainCols = maxAlbums - albums.length;
+        if (DEBUG) console.log('nRemainCols=', nRemainCols);
+
+        var clusterPage;
         for (var i = 0; i < nClusters; i++) {
           laneContent.append('<div class="cluster-page" data-page-num="' + i + '"></div>');
-          var clusterPage = laneContent.find('.cluster-page').last();
+          clusterPage = laneContent.find('.cluster-page').last();
 
           for (var j = 0; j < cardsPerPage && albums.length > 0; j++) {
             var album = albums.get(0);
             albums.splice(0, 1);
             clusterPage.append(album);
           }
+        }
+
+        if (maxAlbums > albums.length) {
+          clusterPage.append('<div class="cluster-spacer remainder-' + nRemainCols + '"></div>');
         }
 
         laneContent.children("[data-type='album']").fadeIn("fast");
