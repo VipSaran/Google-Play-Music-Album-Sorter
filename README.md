@@ -48,6 +48,10 @@ To-Do
 Changelog
 ---------
 
+1.1.1
+
+ - adapted to material design GPM
+
 1.0.1
 
  - adapted to content div id change
