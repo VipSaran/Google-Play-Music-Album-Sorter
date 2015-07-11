@@ -20,7 +20,7 @@
 // @run-at        document-end
 // ==/UserScript==
 
-var DEBUG = false;
+var DEBUG = true;
 
 function GooglePlayMusicAlbumSorter() {
   if (DEBUG) console.log('GooglePlayMusicAlbumSorter()');
@@ -53,78 +53,73 @@ var domModifiedCallback = function() {
   var cardsPerPage = laneContent.parent().data('cards-per-page');
   if (DEBUG) console.log('cardsPerPage=', cardsPerPage);
 
-  var onAlbumsPage = !laneContent.parent().hasClass('has-more');
-  if (onAlbumsPage) {
-    if (DEBUG) console.log('onAlbumsPage');
+  var sectionHeader = $('.section-header');
+  if (sectionHeader) {
+    sortingInProgress = true;
 
-    var sectionHeader = $('.section-header');
-    if (sectionHeader) {
-      sortingInProgress = true;
+    var sortOrder = sorter.loadOrder() || 'asc';
+    if (DEBUG) console.log('sortOrder=', sortOrder);
 
-      var sortOrder = sorter.loadOrder() || 'asc';
-      if (DEBUG) console.log('sortOrder=', sortOrder);
+    // if (DEBUG) console.log('$(#gpmas_sorter)=', $('#gpmas_sorter').html());
+    if ($('#gpmas_sorter').html() === undefined) {
+      sectionHeader.append('<span id="gpmas_sorter" class="' + sortOrder + '" title="Sort"></span>');
 
-      // if (DEBUG) console.log('$(#gpmas_sorter)=', $('#gpmas_sorter').html());
-      if ($('#gpmas_sorter').html() === undefined) {
-        sectionHeader.append('<span id="gpmas_sorter" class="' + sortOrder + '" title="Sort"></span>');
+      $('#gpmas_sorter').click(function(event) {
+        var currClass = $(this).attr('class');
+        if (DEBUG) console.log('gpmas_sorter click', currClass);
 
-        $('#gpmas_sorter').click(function(event) {
-          var currClass = $(this).attr('class');
-          if (DEBUG) console.log('gpmas_sorter click', currClass);
+        $(this).toggleClass('asc desc');
 
-          $(this).toggleClass('asc desc');
+        currClass = $(this).attr('class');
+        if (DEBUG) console.log('gpmas_sorter click', currClass);
 
-          currClass = $(this).attr('class');
-          if (DEBUG) console.log('gpmas_sorter click', currClass);
+        sorter.saveOrder(currClass);
 
-          sorter.saveOrder(currClass);
-
-          domModifiedCallback();
-        });
-      }
-
-      var albums = $("div").find("[data-type='album']").filter(':not(.player-album)');
-      if (DEBUG) console.log('albums=', albums);
-
-      albums.sort(function(a, b) {
-        var aYear = $(a).find("a.sub-title").html();
-        var bYear = $(b).find("a.sub-title").html();
-        return sortOrder === 'asc' ? aYear - bYear : bYear - aYear;
-      });
-
-      laneContent.children("[data-type='album']").fadeOut("fast").promise().done(function() {
-        laneContent.empty();
-
-        var nClusters = Math.ceil(albums.length / cardsPerPage);
-        if (DEBUG) console.log('nClusters=', nClusters);
-        
-        var maxAlbums = cardsPerPage * nClusters;
-        if (DEBUG) console.log('maxAlbums=', maxAlbums);
-
-        var nRemainCols = maxAlbums - albums.length;
-        if (DEBUG) console.log('nRemainCols=', nRemainCols);
-
-        var clusterPage;
-        for (var i = 0; i < nClusters; i++) {
-          laneContent.append('<div class="cluster-page" data-page-num="' + i + '"></div>');
-          clusterPage = laneContent.find('.cluster-page').last();
-
-          for (var j = 0; j < cardsPerPage && albums.length > 0; j++) {
-            var album = albums.get(0);
-            albums.splice(0, 1);
-            clusterPage.append(album);
-          }
-        }
-
-        if (maxAlbums > albums.length) {
-          clusterPage.append('<div class="cluster-spacer remainder-' + nRemainCols + '"></div>');
-        }
-
-        laneContent.children("[data-type='album']").fadeIn("fast");
-
-        sortingInProgress = false;
+        domModifiedCallback();
       });
     }
+
+    var albums = $("div").find("[data-type='album']").filter(':not(.player-album)');
+    if (DEBUG) console.log('albums=', albums);
+
+    albums.sort(function(a, b) {
+      var aYear = $(a).find("a.sub-title").html();
+      var bYear = $(b).find("a.sub-title").html();
+      return sortOrder === 'asc' ? aYear - bYear : bYear - aYear;
+    });
+
+    laneContent.children("[data-type='album']").fadeOut("fast").promise().done(function() {
+      laneContent.empty();
+
+      var nClusters = Math.ceil(albums.length / cardsPerPage);
+      if (DEBUG) console.log('nClusters=', nClusters);
+
+      var maxAlbums = cardsPerPage * nClusters;
+      if (DEBUG) console.log('maxAlbums=', maxAlbums);
+
+      var nRemainCols = maxAlbums - albums.length;
+      if (DEBUG) console.log('nRemainCols=', nRemainCols);
+
+      var clusterPage;
+      for (var i = 0; i < nClusters; i++) {
+        laneContent.append('<div class="cluster-page" data-page-num="' + i + '"></div>');
+        clusterPage = laneContent.find('.cluster-page').last();
+
+        for (var j = 0; j < cardsPerPage && albums.length > 0; j++) {
+          var album = albums.get(0);
+          albums.splice(0, 1);
+          clusterPage.append(album);
+        }
+      }
+
+      if (maxAlbums > albums.length) {
+        clusterPage.append('<div class="cluster-spacer remainder-' + nRemainCols + '"></div>');
+      }
+
+      laneContent.children("[data-type='album']").fadeIn("fast");
+
+      sortingInProgress = false;
+    });
   }
 };
 
@@ -144,6 +139,12 @@ GooglePlayMusicAlbumSorter.prototype.init = function() {
     if (DEBUG) console.log('DOMNodeInserted', event.target.nodeName);
 
     if (event.target.nodeName === 'SJ-ICON-BUTTON') {
+      return;
+    }
+
+    var sectionHeaderTitleText = $('.section-header .title').html();
+    // if (DEBUG) console.log('sectionHeaderTitleText=', sectionHeaderTitleText);
+    if (sectionHeaderTitleText !== 'Albums') {
       return;
     }
 
