@@ -51,6 +51,10 @@ Once your browser is equipped with appropriate extension, simply open [this link
 
 ## Changelog
 
+1.1.2
+
+ - fix for parsing non-Albums sections
+
 1.1.1
 
  - adapted to material design GPM
