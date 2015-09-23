@@ -20,7 +20,7 @@
 // @run-at        document-end
 // ==/UserScript==
 
-var DEBUG = false;
+var DEBUG = true;
 
 function GooglePlayMusicAlbumSorter() {
   if (DEBUG) console.log('GooglePlayMusicAlbumSorter()');
@@ -143,9 +143,20 @@ GooglePlayMusicAlbumSorter.prototype.init = function() {
     }
 
     var sectionHeaderTitleText = $('.section-header .title').html();
-    // if (DEBUG) console.log('sectionHeaderTitleText=', sectionHeaderTitleText);
+    if (DEBUG) console.log('sectionHeaderTitleText=', sectionHeaderTitleText);
     if (sectionHeaderTitleText !== 'Albums') {
-      return;
+      var headerTitles = $('.header .title');
+      if (DEBUG) console.log('headerTitles', headerTitles);
+
+      $.each(headerTitles, function(index, title) {
+        console.log('title', title);
+      });
+
+      var headerTitleText = $('.header .title').html();
+      // if (DEBUG) console.log('headerTitleText=', headerTitleText);
+      if (headerTitleText !== 'Albums') {
+        return;
+      }
     }
 
     if (domModifiedTimeout) {
