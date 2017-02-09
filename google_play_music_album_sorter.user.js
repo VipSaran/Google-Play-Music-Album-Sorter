@@ -50,10 +50,7 @@ var domModifiedCallback = function() {
   var laneContent = $('#music-content .lane-content');
   if (DEBUG) console.log('laneContent=', laneContent);
 
-  var cardsPerPage = laneContent.parent().data('cards-per-page');
-  if (DEBUG) console.log('cardsPerPage=', cardsPerPage);
-
-  var sectionHeader = $('.section-header');
+  var sectionHeader = $('.header');
   if (sectionHeader) {
     sortingInProgress = true;
 
@@ -91,29 +88,10 @@ var domModifiedCallback = function() {
     laneContent.children("[data-type='album']").fadeOut("fast").promise().done(function() {
       laneContent.empty();
 
-      var nClusters = Math.ceil(albums.length / cardsPerPage);
-      if (DEBUG) console.log('nClusters=', nClusters);
-
-      var maxAlbums = cardsPerPage * nClusters;
-      if (DEBUG) console.log('maxAlbums=', maxAlbums);
-
-      var nRemainCols = maxAlbums - albums.length;
-      if (DEBUG) console.log('nRemainCols=', nRemainCols);
-
-      var clusterPage;
-      for (var i = 0; i < nClusters; i++) {
-        laneContent.append('<div class="cluster-page" data-page-num="' + i + '"></div>');
-        clusterPage = laneContent.find('.cluster-page').last();
-
-        for (var j = 0; j < cardsPerPage && albums.length > 0; j++) {
+      for (var i = 0; albums.length > 0; i++) {
           var album = albums.get(0);
           albums.splice(0, 1);
-          clusterPage.append(album);
-        }
-      }
-
-      if (maxAlbums > albums.length) {
-        clusterPage.append('<div class="cluster-spacer remainder-' + nRemainCols + '"></div>');
+          laneContent.append(album);
       }
 
       laneContent.children("[data-type='album']").fadeIn("fast");
@@ -138,11 +116,12 @@ GooglePlayMusicAlbumSorter.prototype.init = function() {
   $('#music-content').bind("DOMNodeInserted", function(event) {
     if (DEBUG) console.log('DOMNodeInserted', event.target.nodeName);
 
-    if (event.target.nodeName === 'SJ-ICON-BUTTON') {
+    var element = $(event.target);
+    if (!(element.hasClass('g-content') || element.hasClass('cluster'))) {
       return;
     }
 
-    var sectionHeaderTitleText = $('.section-header .title').html();
+    var sectionHeaderTitleText = $('.header .title').html();
     // if (DEBUG) console.log('sectionHeaderTitleText=', sectionHeaderTitleText);
     if (sectionHeaderTitleText !== 'Albums') {
       return;
