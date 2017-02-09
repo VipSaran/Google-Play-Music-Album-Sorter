@@ -116,7 +116,8 @@ GooglePlayMusicAlbumSorter.prototype.init = function() {
   $('#music-content').bind("DOMNodeInserted", function(event) {
     if (DEBUG) console.log('DOMNodeInserted', event.target.nodeName);
 
-    if (event.target.nodeName === 'SJ-ICON-BUTTON') {
+    var element = $(event.target);
+    if (!(element.hasClass('g-content') || element.hasClass('cluster'))) {
       return;
     }
 
